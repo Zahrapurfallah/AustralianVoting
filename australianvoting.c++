@@ -4,21 +4,23 @@
 #include<vector>
 #include<list>
 #include<string>
+#include<cstring>
 #include<sstream> 
 #include<algorithm>
 #include<iomanip>
+#include<set>
 
 using namespace std;
 
 // class for candidate
 struct Candidate {
-    string name;
+    char name[81];
     list<unsigned> votes;
 };
 
 vector<Candidate> candidates;
 vector< list<unsigned> > voters; // voters with their ballot selection list
-vector<unsigned> eliminated_candidates; // to keep track 
+set<unsigned> remain_candidates; // to keep track 
 
 unsigned num_candidates = 0; 
 unsigned num_voters = 0; 
@@ -29,18 +31,18 @@ void sort() {
     unsigned num_bottom = 2000; 
 
     // get the top and bottom candidates
-    for(unsigned i = 1; i <= num_candidates; ++i) {
-        // ignore candidates that are eliminated 
-        if (candidates[i].votes.empty()) {
-            continue;
-        }
+    for(unsigned i: remain_candidates) {
         // if found a candidate whose votes > current max
         // or votes == current max, 
         // update the top vector 
         if (candidates[i].votes.size() > num_top) { 
+            cout << candidates[i].name << endl;
+            return;
+            /*
             top.clear(); 
             top.push_back(i);
             num_top = candidates[i].votes.size();
+            */
         } else if (candidates[i].votes.size() == num_top) {
             top.push_back(i);
         }
@@ -64,7 +66,25 @@ void sort() {
         }
         return;
     }
-    
+
+    //cout << "bottom " << bottom.size() << " remain " << remain_candidates.size() << endl;
+    unsigned left = remain_candidates.size() - bottom.size(); 
+    if (left == 0) {
+        // all tie 
+        for (auto c: bottom) {
+            cout << candidates[c].name << endl;
+        }
+        return;
+    } else if (left == 1) {
+        // only one left, must be the winner, so no need to recount the votes
+        for (unsigned c: remain_candidates) {
+            if (candidates[c].votes.size() > num_bottom) {
+                cout << candidates[c].name << endl;
+                return;
+            }
+        }
+    }
+
     // go thru all the candidates at the bottom 
     // and redistribute their votes 
     for (auto b: bottom) {
@@ -72,8 +92,8 @@ void sort() {
         for (auto v: candidates[b].votes) {
             // first get rid of a ballot's top candidate 
             // if they are already eliminated 
-            while(find(eliminated_candidates.begin(), eliminated_candidates.end(), 
-                        voters[v].front()) != eliminated_candidates.end()) { 
+            while (!voters[v].empty() && 
+                    remain_candidates.find(voters[v].front()) == remain_candidates.end()) { 
                 voters[v].pop_front();
             }
             
@@ -87,12 +107,12 @@ void sort() {
 
         // keep track of eliminated candidates 
         candidates[b].votes.clear();
-        eliminated_candidates.push_back(b);
+        remain_candidates.erase(b);
     }
 
     /*
     for (unsigned j = 1; j <= num_candidates; ++j) {
-        cout << candidates[j].name << " " << candidates[j].votes.size() << endl;
+        cout << candidates[j].votes.size() << " " << candidates[j].name << endl;
     }*/
 
     // we still haven't found a winner, sort again 
@@ -106,29 +126,32 @@ int main(void) {
 
     string line;
     unsigned cases;
-    cin >> cases; 
-    
+    scanf("%d\n\n", &cases);
+    //cout << cases << endl;
+
     // go thru each case
     for (unsigned i = 0; i < cases; ++i) {
 
-        cin >> num_candidates;
+        remain_candidates.clear();
+
+        scanf("%d\n", &num_candidates);
+        //cout << num_candidates << endl;
         // accept candidate names
         for (unsigned j = 1; j <= num_candidates; ++j) {
-            do {
-                getline(cin, line);
-            } while (line.empty());
-            candidates[j].name = line;
+            gets(candidates[j].name);
             candidates[j].votes.clear();
+            //cout << j << " " << candidates[j].name << endl;
         }
+
         // accept voter ballots
         num_voters = 0;
-        getline(cin, line);
-        while (!line.empty()) {
+        while(getline(cin, line) && !line.empty() && (line[0] != '\n') && (line[0] != ' ')) {
+            //cout << "size " << line.size() << " '" << line << "'" << endl;;
             voters[num_voters].resize(num_candidates); 
             // parse each string from the line
             istringstream stream(line);
             list<unsigned> l;
-            for (unsigned k=0; stream.good(); k++) {
+            for (unsigned k = 0; k < num_candidates; ++k) {
                 unsigned tmp;
                 stream >> tmp;
                 l.push_back(tmp);
@@ -136,7 +159,6 @@ int main(void) {
             } 
             voters[num_voters] = move(l);
             ++num_voters;   
-            getline(cin, line);
         }
 
         //cout << "num_voters = " << num_voters << ", num_candidates " << num_candidates <<"\n";
@@ -150,14 +172,17 @@ int main(void) {
             candidates[vote].votes.push_back(j);
         }
 
-        /* 
         for (unsigned j = 1; j <= num_candidates; ++j) {
-            cout << candidates[j].name << " " << candidates[j].votes.size() << endl;
+            if (!candidates[j].votes.empty()) {
+                remain_candidates.insert(j);
+            }
+            //cout << candidates[j].votes.size() << " " << candidates[j].name << endl;
         }
-        */
         
         // do the sort and elimination
         sort();
+
+        //cout << endl;
     }
 
     return 0;

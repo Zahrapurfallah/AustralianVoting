@@ -132,6 +132,10 @@ int main(void) {
     // go thru each case
     for (unsigned i = 0; i < cases; ++i) {
 
+        if (i > 0) {
+            cout << endl;
+        }
+
         remain_candidates.clear();
 
         scanf("%d\n", &num_candidates);
@@ -181,8 +185,6 @@ int main(void) {
         
         // do the sort and elimination
         sort();
-
-        //cout << endl;
     }
 
     return 0;

@@ -77,10 +77,12 @@ void sort() {
                 voters[v].pop_front();
             }
             
-            unsigned vote = voters[v].front();
-            //cout << vote << endl;
-            voters[v].pop_front();
-            candidates[vote].votes.push_back(v);
+            if (!voters[v].empty()) {
+                unsigned vote = voters[v].front();
+                //cout << vote << endl;
+                voters[v].pop_front();
+                candidates[vote].votes.push_back(v);
+            }
         }
 
         // keep track of eliminated candidates 

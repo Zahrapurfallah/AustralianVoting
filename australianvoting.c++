@@ -123,6 +123,9 @@ int main(void) {
 
     voters.resize(1000); 
     candidates.resize(21);
+    for (auto &v: voters){
+        v.resize(21);
+    }
 
     string line;
     unsigned cases;
@@ -151,7 +154,7 @@ int main(void) {
         num_voters = 0;
         while(getline(cin, line) && !line.empty() && (line[0] != '\n') && (line[0] != ' ')) {
             //cout << "size " << line.size() << " '" << line << "'" << endl;;
-            voters[num_voters].resize(num_candidates); 
+            //voters[num_voters].resize(num_candidates); 
             // parse each string from the line
             istringstream stream(line);
             list<unsigned> l;
@@ -183,8 +186,12 @@ int main(void) {
             //cout << candidates[j].votes.size() << " " << candidates[j].name << endl;
         }
         
-        // do the sort and elimination
-        sort();
+        if (remain_candidates.size() == 1) {
+            cout << candidates[*remain_candidates.begin()].name << endl;
+        } else {
+            // do the sort and elimination
+            sort();
+        }
     }
 
     return 0;
